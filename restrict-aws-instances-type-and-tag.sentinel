@@ -21,11 +21,6 @@ all_resources = filter tfplan.resource_changes as _, rc {
     rc.type is tfstate.resources and
         (rc.change.actions contains "create" or rc.change.actions is ["update"])
 
-# Rule to restrict resource creation
-resources_allowed = rule {
-        all_resources.change.after in allowed_resources
-    }
-
 
 find_taggable_resources_in_state = func(){
     resources = filter tfstate.resources as address, r {
