@@ -4,8 +4,7 @@ import "tfplan/v2" as tfplan
 import "types"
 import "strings"
 
-allowed_types = [
-	"aws_route53",
+allowed_types = ["aws_route53",
     "aws_api_gateway",
     "aws_sns",
     "aws_sqs",
@@ -14,6 +13,7 @@ allowed_types = [
     "aws_dynamodb",
     "aws_sms",
 ]
+
 
 # Get all AWS resources from all modules
 all_resources = filter tfplan.resource_changes as _, rc {
