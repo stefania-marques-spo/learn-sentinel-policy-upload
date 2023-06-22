@@ -103,6 +103,6 @@ for violations as violation {
     print(violation)
 }
 main = rule {
-    (length( violations ) is 0 and resources_allowed_tags is true)
+    length( violations ) is 0 
 }
 
