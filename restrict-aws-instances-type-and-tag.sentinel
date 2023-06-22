@@ -23,7 +23,7 @@ all_resources = filter tfplan.resource_changes as _, rc {
 
 # Rule to restrict resource creation
 resources_allowed = rule {
-        all_resources.change.after in allowed_types
+        all_resources.change.after in allowed_resources
     }
 
 
