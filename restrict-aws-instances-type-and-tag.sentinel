@@ -22,10 +22,9 @@ all_resources = filter tfplan.resource_changes as _, rc {
 
 # Rule to restrict resource creation
 resources_allowed = rule {
-    all all_resources  {
         all_resources.change.after in allowed_types
     }
-}
+
 
 find_taggable_resources_in_state = func(){
     resources = filter tfstate.resources as address, r {
