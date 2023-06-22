@@ -4,14 +4,15 @@ import "tfplan/v2" as tfplan
 import "types"
 import "strings"
 
-allowed_types = ["aws_route53",
+allowed_types = [
+    {"aws_route53",
     "aws_api_gateway",
     "aws_sns",
     "aws_sqs",
     "aws_lambda",
     "aws_lambda_function",
     "aws_dynamodb",
-    "aws_sms",
+    "aws_sms"},
 ]
 
 
