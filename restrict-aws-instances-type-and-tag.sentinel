@@ -17,9 +17,9 @@ allowed_resources = [
 
 
 # Get all AWS resources from all modules
-all_resources = filter tfplan.resource_changes as _, rc {
-    rc.type is tfstate.resources and
-        (rc.change.actions contains "create" or rc.change.actions is ["update"])
+# all_resources = filter tfplan.resource_changes as _, rc {
+    # rc.type is tfstate.resources and
+        # (rc.change.actions contains "create" or rc.change.actions is ["update"])
 
 
 find_taggable_resources_in_state = func(){
