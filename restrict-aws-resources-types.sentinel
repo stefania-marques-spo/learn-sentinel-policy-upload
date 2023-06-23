@@ -1,0 +1,38 @@
+import "tfconfig/v2" as tfconfig
+import "tfstate/v2" as tfstate
+import "tfplan/v2" as tfplan
+import "types"
+import "strings"
+
+allowed_resources = [
+    "aws_route53",
+    "aws_api_gateway",
+    "aws_sns",
+    "aws_sqs",
+    "aws_lambda",
+    "aws_lambda_function",
+    "aws_dynamodb",
+    "aws_sms",
+]
+
+# Get all AWS instances from all modules
+full_resources = filter tfplan.resource_changes as _, rc {
+        rc.change.actions contains "create" or rc.change.actions is ["update"]
+}
+print("full_resources")
+
+
+# Rule to enforce "Name" tag on all instances
+resources_approved = rule {
+    all full_resources as _, full {
+        full.change.after in allowed_resources
+        }
+    }
+
+
+# Main rule that requires other rules to be true
+main = rule {
+    (resources_approved) else true
+    
+}
+print("Resources")
