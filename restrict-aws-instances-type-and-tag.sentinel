@@ -71,14 +71,14 @@ find_violations = func(required_tags) {
     return msgs
 }
 
-required_tags = {
+required_tags = [
     "team",
     "environment",
     "app",
     "deployed-time",
     "deployed-by",
     "source-hash",
-}
+]
 
 violations = find_violations(required_tags)
 for violations as violation {
