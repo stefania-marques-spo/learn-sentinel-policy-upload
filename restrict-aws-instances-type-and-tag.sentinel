@@ -1,95 +1,13 @@
-import "tfconfig/v2" as tfconfig
-import "tfstate/v2" as tfstate
-import "tfplan/v2" as tfplan
-import "types"
-import "strings"
+# This policy uses the Sentinel tfplan/v2 import to require that
+# all AWS resources that use standard AWS tags have all mandatory tags
 
-allowed_resources = [
-    "aws_route53",
-    "aws_api_gateway",
-    "aws_sns",
-    "aws_sqs",
-    "aws_lambda",
-    "aws_lambda_function",
-    "aws_dynamodb",
-    "aws_sms",
-]
+# Import common-functions/tfplan-functions/tfplan-functions.sentinel with alias "plan"
+import "tfplan-functions" as plan
 
+# Import aws-functions/aws-functions.sentinel with alias "aws"
+import "aws-functions" as aws
 
-# Get all AWS resources from all modules
-# all_resources = filter tfplan.resource_changes as _, rc {
-    # rc.type is tfstate.resources and
-        # (rc.change.actions contains "create" or rc.change.actions is ["update"])
-
-
-find_taggable_resources_in_state = func(){
-    resources = filter tfstate.resources as address, r {
-        r.mode is "managed" and
-        ( types.type_of(r.values.tags) is "map" or types.type_of(r.values.tags_all) is "map" )
-    }
-    return resources
-}
-
-find_taggable_resources_in_plan = func(){
-    resources = filter tfplan.resource_changes as address, rc {
-        rc.mode is "managed" and
-        rc.change.after is not null and
-        rc.change.actions not contains "delete" and
-        (rc.change.actions contains "create" or rc.change.actions contains "update") and
-        ( types.type_of(rc.change.after.tags_all) is "map" or types.type_of(rc.change.after.tags) is "map" )
-    }
-    return resources
-}
-
-find_violations = func(required_tags) {
-    msgs = []
-    for find_taggable_resources_in_plan() as address, rc {
-        for required_tags as tag_name, regex {
-            tags = {}
-            if types.type_of(rc.change.after.tags_all) is "map" {
-                tags = rc.change.after.tags_all
-            } else if types.type_of(rc.change.after.tags) is "map" {
-                tags = rc.change.after.tags
-            }
-
-            if keys(tags) contains tag_name {
-                if not (tags[tag_name] matches regex) {
-                    msg = "[PLAN VIOLATION] Resource: " + address + " Tag: " + tag_name + " Value:" + tags[tag_name] + " does not match Regex: " + regex
-                    append(msgs, msg)
-                }
-            } else {
-                    msg = "[PLAN VIOLATION] Resource: " + address + " Tags: [" + strings.join( keys(tags), ", " ) + "] missing Tag: " + tag_name
-                    append(msgs, msg)
-            }
-        }
-    }
-
-    for find_taggable_resources_in_state() as address, r {
-        for required_tags as tag_name, regex {
-            tags = {}
-            if types.type_of(r.values.tags_all) is "map" {
-                tags = r.values.tags_all
-            } else if types.type_of(r.values.tags) is "map" {
-                tags = r.values.tags
-            }
-
-            if keys(tags) contains tag_name {
-                if not (tags[tag_name] matches regex) {
-                    msg = "[STATE VIOLATION] Resource: " + address + " Tag: " + tag_name + " Value:" + tags[tag_name] + " does not match Regex: " + regex
-                    append(msgs, msg)
-                }
-            } else {
-                    msg = "[STATE VIOLATION] Resource: " + address + " Tags: [" + strings.join( keys(tags), ", " ) + "] Missing Tag: " + tag_name
-                    append(msgs, msg)
-            }
-        }
-    }
-
-
-    return msgs
-}
-
-required_tags = [
+mandatory_tags = [
     "team",
     "environment",
     "app",
@@ -98,11 +16,15 @@ required_tags = [
     "source-hash",
 ]
 
-violations = find_violations(required_tags)
-for violations as violation {
-    print(violation)
-}
-main = rule {
-    length( violations ) is 0 
-}
+# Get all AWS Resources with standard tags
+allAWSResourcesWithStandardTags = aws.find_resources_with_standard_tags()
 
+# Filter to AWS resources with violations
+# Warnings will be printed for all violations since the last parameter is true
+violatingAWSResources = plan.filter_attribute_not_contains_list(allAWSResourcesWithStandardTags,
+                        "tags", mandatory_tags, true)
+
+# Main rule
+main = rule {
+  length(violatingAWSResources["messages"]) is 0
+}
