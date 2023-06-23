@@ -22,7 +22,7 @@ full_resources = filter tfplan.resource_changes as _, rc {
 print("full_resources")
 
 
-# Rule to enforce "Name" tag on all instances
+# Rule to enforce resources only be the approved ones
 resources_approved = rule {
     all full_resources as _, full {
         full.change.after in allowed_resources
@@ -30,7 +30,7 @@ resources_approved = rule {
     }
 
 
-# Main rule that requires other rules to be true
+# Main rule
 main = rule {
     (resources_approved) else true
     
