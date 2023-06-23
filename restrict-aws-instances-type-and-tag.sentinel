@@ -1,8 +1,7 @@
 # This policy uses the Sentinel tfplan/v2 import to require that
 # all AWS resources that use standard AWS tags have all mandatory tags
 
-# Import common-functions/tfplan-functions/tfplan-functions.sentinel with alias "plan"
-import "tfplan-functions" as plan
+import "tfplan/v2" as plan
 
 # Import aws-functions/aws-functions.sentinel with alias "aws"
 import "aws-functions" as aws
